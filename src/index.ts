@@ -1,4 +1,5 @@
 export * from './swaggerDecorators'
 export * from './pathDecorator'
 export * from './routeFactory'
-export * as util from './utils'
+import * as util from './utils'
+export {util}
