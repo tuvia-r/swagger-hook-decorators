@@ -1,0 +1,31 @@
+{
+  "name": "swagger-hook-decorators",
+  "version": "0.0.1",
+  "description": "decorators to be used with sails swagger-hook",
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tuvia-r/swagger-hook-decorators.git"
+  },
+  "keywords": [
+    "sails",
+    "swagger",
+    "decorator"
+  ],
+  "author": "Tuvia Rumpler",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tuvia-r/swagger-hook-decorators/issues"
+  },
+  "homepage": "https://github.com/tuvia-r/swagger-hook-decorators#readme",
+  "dependencies": {
+    "@types/lodash": "^4.14.164",
+    "@types/node": "^14.14.6",
+    "@types/swagger-schema-official": "^2.0.21",
+    "lodash": "^4.17.20",
+    "swagger-schema-official": "^2.0.0-bab6bed"
+  }
+}
