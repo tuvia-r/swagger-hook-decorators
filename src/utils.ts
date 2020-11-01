@@ -94,7 +94,7 @@ export const bodyModelSchema = (model: string) => {
     })
 }
 
-export const responseArraySchema = (code: string = '200', options: { itemSchema: _.Dictionary<any>, description?: string}) => {
+export const responseArraySchema = (code: string = '200', options: { itemSchema: _.Dictionary<any>, description: string}) => {
     const  { itemSchema, description } = options
     return {
         [code]: {
@@ -111,7 +111,7 @@ export const responseArraySchema = (code: string = '200', options: { itemSchema:
     }
 }
 
-export const responseObjectSchema = (code: string, options: { schema: Schema, description?: string}) => {
+export const responseObjectSchema = (code: string, options: { schema: Schema, description: string}) => {
     const  { schema, description } = options
     return {
         [code]: {
@@ -125,7 +125,7 @@ export const responseObjectSchema = (code: string, options: { schema: Schema, de
     }
 }
 
-export const responseRefSchema = (code: string, ref: string, description?: string) => {
+export const responseRefSchema = (code: string, ref: string, description: string) => {
     return {
         [code]: {
             description,
@@ -140,7 +140,7 @@ export const responseRefSchema = (code: string, ref: string, description?: strin
     }
 }
 
-export const responseModelSchema = (code: string, model: string | string[],  description?: string) =>{
+export const responseModelSchema = (code: string, model: string | string[],  description: string) =>{
     if(!Array.isArray(model)){
         model = [model]
     }
@@ -159,7 +159,7 @@ export const responseModelSchema = (code: string, model: string | string[],  des
     }
 }
 
-export const responseModelArraySchema = (code: string, model: string | string[], description?: string) => {
+export const responseModelArraySchema = (code: string, model: string | string[], description: string) => {
     if(!Array.isArray(model)){
         model = [model]
     }

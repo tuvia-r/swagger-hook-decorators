@@ -32,7 +32,7 @@ export interface RequestBody {
     required?: boolean;
 }
 
-export type Parameter = OpenApi.Parameter & {type: DataType}
+export type Parameter = OpenApi.Parameter & {type: DataType, description: string}
 
 export interface SwaggerConfig {
   summary?: string;

@@ -28,7 +28,7 @@ export declare const bodyModelSchema: (model: string) => {
 };
 export declare const responseArraySchema: (code: string, options: {
     itemSchema: _.Dictionary<any>;
-    description?: string;
+    description: string;
 }) => {
     [x: string]: {
         description: string;
@@ -44,7 +44,7 @@ export declare const responseArraySchema: (code: string, options: {
 };
 export declare const responseObjectSchema: (code: string, options: {
     schema: Schema;
-    description?: string;
+    description: string;
 }) => {
     [x: string]: {
         description: string;
@@ -55,7 +55,7 @@ export declare const responseObjectSchema: (code: string, options: {
         };
     };
 };
-export declare const responseRefSchema: (code: string, ref: string, description?: string) => {
+export declare const responseRefSchema: (code: string, ref: string, description: string) => {
     [x: string]: {
         description: string;
         content: {
@@ -67,7 +67,7 @@ export declare const responseRefSchema: (code: string, ref: string, description?
         };
     };
 };
-export declare const responseModelSchema: (code: string, model: string | string[], description?: string) => {
+export declare const responseModelSchema: (code: string, model: string | string[], description: string) => {
     [x: string]: {
         description: string;
         content: {
@@ -81,7 +81,7 @@ export declare const responseModelSchema: (code: string, model: string | string[
         };
     };
 };
-export declare const responseModelArraySchema: (code: string, model: string | string[], description?: string) => {
+export declare const responseModelArraySchema: (code: string, model: string | string[], description: string) => {
     [x: string]: {
         description: string;
         content: {

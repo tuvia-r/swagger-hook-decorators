@@ -4,7 +4,7 @@
   "description": "decorators to be used with sails swagger-hook",
   "main": "./dist/index.js",
   "scripts": {
-    "test": "test"
+    "test": "node ./node_modules/mocha/bin/mocha test/lifecycle.test.js test/**/*.test.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,24 @@
     "@types/lodash": "^4.14.164",
     "@types/node": "^14.14.6",
     "@types/swagger-schema-official": "^2.0.21",
+    "grunt": "1.0.4",
     "lodash": "^4.17.20",
     "swagger-schema-official": "^2.0.0-bab6bed"
+  },
+  "devDependencies": {
+    "eslint": "5.16.0",
+    "mocha": "^8.2.0",
+    "sails": "^1.2.3",
+    "sails-hook-babel": "^7.0.0",
+    "sails-hook-grunt": "^4.0.0",
+    "sails-hook-orm": "^2.1.1",
+    "sails-hook-sockets": "^2.0.0",
+    "sails-hook-swagger-generator": "^3.3.0",
+    "chai": "^4.2.0",
+    "@babel/plugin-proposal-decorators": "^7.12.1",
+    "@babel/register": "^7.12.1",
+    "@sailshq/connect-redis": "^3.2.1",
+    "@sailshq/lodash": "^3.10.3",
+    "@sailshq/socket.io-redis": "^5.2.0"
   }
 }

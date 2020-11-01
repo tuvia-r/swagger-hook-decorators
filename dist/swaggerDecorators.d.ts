@@ -27,6 +27,7 @@ export interface RequestBody {
 }
 export declare type Parameter = OpenApi.Parameter & {
     type: DataType;
+    description: string;
 };
 export interface SwaggerConfig {
     summary?: string;
