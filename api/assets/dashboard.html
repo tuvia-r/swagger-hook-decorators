@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Dataloop</title>
+  <!-- include jQuery library and other javascripts -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body id="body">
+    <div id="app">
+    {{ input }}
+    <button id ="fullScreenButton" onclick='fullScren()'>Full screen</button>
+    <div id="slideshow">
+        <iframe v-for="f in frames" style="position:absolute;display: none;" class="full-height" :src="f" ></iframe>
+      </div>
+      <iframe src="" height="600" width="800"></iframe>
+    </div>
+</body>
+<style type="text/css">
+    .active{
+        z-index:99;
+    }
+    html, body {
+        height: 100%;
+    }
+
+    .full-height {
+        height: 100%;
+        width: 100%;
+    }
+</style>
+<script>
+    function slideSwitch() { 
+        var $active = $('div#slideshow iframe:visible');
+        if ($active.length==0){
+            var $active = $('div#slideshow iframe:hidden');
+            if ($active.length>1){
+                $($active[0]).fadeIn()
+            }
+            return 
+        }
+        var $next = $active.next();    
+        $($active[0]).fadeOut()
+        if (!$next.length){ // done restart 
+            var $hidden= $('div#slideshow iframe:hidden');
+            $($hidden[0]).fadeIn()
+            return ;
+        }
+        $next.fadeIn();
+    }
+    function fullScren(){
+        openFullscreen($('#slideshow')[0])
+		return false;
+    }
+    function openFullscreen(elem) {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) { /* Firefox */
+            elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE/Edge */
+            elem.msRequestFullscreen();
+        }
+    }
+	// document's event
+	$(document).bind('fscreenchange', function(e, state, elem) {
+		// if we currently in fullscreen mode
+		if ($.fullscreen.isFullScreen()) {
+			$('#fullScreenButton').hide();
+			//$('#fullscreen .exitfullscreen').show();
+		} else {
+			$('#fullScreenButton').show();
+			//$('#fullscreen .exitfullscreen').hide();
+		}
+	});
+    $(function() {
+        setInterval( "slideSwitch()", 10000 );
+    });
+    new Vue({
+        el: '#app',
+        data: {
+            input: '# hello',
+            frames:["https://7a7e512a6daa42a6beb872faff19b374.europe-west3.gcp.cloud.es.io:9243/app/kibana#/dashboard/4006cf40-3ad3-11ea-b97b-3f3da03268c5?embed=true&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now%2FM,mode:quick,to:now%2FM))&_a=(description:'',filters:!(),fullScreenMode:!f,options:(darkTheme:!f,hidePanelTitles:!f,useMargins:!t),panels:!((embeddableConfig:(),gridData:(h:15,i:'1',w:24,x:0,y:0),id:dfa11ea0-3aa3-11ea-b97b-3f3da03268c5,panelIndex:'1',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:15,i:'2',w:24,x:0,y:15),id:'04ea4be0-3aa5-11ea-b97b-3f3da03268c5',panelIndex:'2',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:15,i:'3',w:24,x:24,y:0),id:'9eabef80-3ad3-11ea-b97b-3f3da03268c5',panelIndex:'3',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:15,i:'4',w:24,x:24,y:15),id:ac6fcce0-3ad3-11ea-b97b-3f3da03268c5,panelIndex:'4',type:visualization,version:'6.8.2')),query:(language:kuery,query:''),timeRestore:!t,title:'Monthly+work',viewMode:view)",
+            "https://7a7e512a6daa42a6beb872faff19b374.europe-west3.gcp.cloud.es.io:9243/app/kibana#/dashboard/81523620-37ad-11ea-b97b-3f3da03268c5?embed=true&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now%2Fd,mode:quick,to:now%2Fd))&_a=(description:'',filters:!(),fullScreenMode:!f,options:(darkTheme:!f,hidePanelTitles:!f,useMargins:!t),panels:!((embeddableConfig:(),gridData:(h:8,i:'1',w:42,x:0,y:0),id:bd328c10-3796-11ea-b97b-3f3da03268c5,panelIndex:'1',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:9,i:'2',w:42,x:0,y:26),id:d8586900-379c-11ea-b97b-3f3da03268c5,panelIndex:'2',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:10,i:'3',w:42,x:0,y:8),id:'61003c60-379d-11ea-b97b-3f3da03268c5',panelIndex:'3',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:8,i:'4',w:42,x:0,y:18),id:'3ee9fb60-37a3-11ea-b97b-3f3da03268c5',panelIndex:'4',type:visualization,version:'6.8.2')),query:(language:kuery,query:''),timeRestore:!f,title:'User+activity',viewMode:view)",
+                    "https://7a7e512a6daa42a6beb872faff19b374.europe-west3.gcp.cloud.es.io:9243/app/kibana#/dashboard/5564b080-378d-11ea-b97b-3f3da03268c5?embed=true&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now%2Fd,mode:quick,to:now%2Fd))&_a=(description:'',filters:!(),fullScreenMode:!f,options:(darkTheme:!f,hidePanelTitles:!f,useMargins:!t),panels:!((embeddableConfig:(),gridData:(h:11,i:'1',w:21,x:26,y:15),id:a58e2700-378b-11ea-b97b-3f3da03268c5,panelIndex:'1',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:11,i:'2',w:13,x:0,y:15),id:'052727b0-378d-11ea-b97b-3f3da03268c5',panelIndex:'2',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:11,i:'3',w:13,x:13,y:15),id:f5502c50-378d-11ea-b97b-3f3da03268c5,panelIndex:'3',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:15,i:'4',w:47,x:0,y:0),id:'19114f70-378e-11ea-b97b-3f3da03268c5',panelIndex:'4',type:visualization,version:'6.8.2')),query:(language:lucene,query:''),timeRestore:!f,title:'Snap+status',viewMode:view)",
+                "https://7a7e512a6daa42a6beb872faff19b374.europe-west3.gcp.cloud.es.io:9243/app/kibana#/dashboard/9007fd40-3ad1-11ea-b97b-3f3da03268c5?embed=true&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now%2Fd,mode:quick,to:now%2Fd))&_a=(description:'',filters:!(),fullScreenMode:!f,options:(darkTheme:!f,hidePanelTitles:!f,useMargins:!t),panels:!((embeddableConfig:(),gridData:(h:16,i:'1',w:44,x:0,y:0),id:'4cb06540-37ad-11ea-b97b-3f3da03268c5',panelIndex:'1',type:visualization,version:'6.8.2'),(embeddableConfig:(),gridData:(h:14,i:'2',w:44,x:0,y:16),id:'3a738a40-37aa-11ea-b97b-3f3da03268c5',panelIndex:'2',type:visualization,version:'6.8.2')),query:(language:kuery,query:''),timeRestore:!t,title:Tags,viewMode:view)"
+                ]
+        },
+        computed: {
+            compiledMarkdown: function () {
+            return marked(this.input, { sanitize: true })
+            }
+        },
+        methods: {
+           
+        }
+        })
+</script>
+</html>

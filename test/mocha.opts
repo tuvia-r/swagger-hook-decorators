@@ -1,0 +1,2 @@
+﻿--timeout 120s 
+--require mocha-clean
