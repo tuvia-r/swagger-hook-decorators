@@ -4,6 +4,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const appRoot = (_a = require.main) === null || _a === void 0 ? void 0 : _a.paths[0].split('node_modules')[0].slice(0, -1);
 const baseControllersPath = appRoot + '/api/controllers';
+const babel = require('@babel/register');
+require("regenerator-runtime/runtime");
+require('@babel/plugin-proposal-decorators');
+babel({
+    plugins: [[require('@babel/plugin-proposal-decorators').default, { legacy: true }]]
+});
 exports.routes = () => {
     const files = fs_1.readdirSync(baseControllersPath);
     const controllers = files.map(f => ({ fileName: f, filePath: baseControllersPath }));
@@ -42,8 +48,8 @@ exports.routes = () => {
                 const basePath = actions[action].basePath;
                 const method = actions[action].method;
                 const path = actions[action].path;
-                if (method && path) {
-                    routes[`${method} ${basePath}${path}`] = `${controller}.${action}`;
+                if (method && (path || basePath)) {
+                    routes[`${method} ${basePath || ''}${path || ''}`] = `${controller}.${action}`;
                 }
             }
         }
