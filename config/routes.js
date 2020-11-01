@@ -8,10 +8,9 @@
  * https://sailsjs.com/anatomy/config/routes-js
  */
 const { routes } = require('../dist/index');
-const sails = require('sails')
 
 module.exports.routes = {
-  ...routes(sails)
+  ...routes()
 
   /***************************************************************************
   *                                                                          *

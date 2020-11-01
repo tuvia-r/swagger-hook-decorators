@@ -4,6 +4,13 @@ import { Dictionary } from 'lodash'
 const appRoot = require.main?.paths[0].split('node_modules')[0].slice(0, -1)
 const baseControllersPath = appRoot + '/api/controllers'
 
+const babel = require('@babel/register')
+require("regenerator-runtime/runtime")
+require('@babel/plugin-proposal-decorators')
+babel({
+  plugins: [[require('@babel/plugin-proposal-decorators').default, { legacy: true }]]
+});
+
 export const routes = () => {
     const files = readdirSync(baseControllersPath)
     const controllers = files.map(f => ({fileName: f, filePath: baseControllersPath}))
@@ -48,8 +55,8 @@ export const routes = () => {
                 const method = actions[action].method
                 const path = actions[action].path
 
-                if(method && path){
-                    routes[`${method} ${basePath}${path}`] = `${controller}.${action}`
+                if(method && (path || basePath)){
+                    routes[`${method} ${basePath || ''}${path || ''}`] = `${controller}.${action}`
                 }
             }
         }
