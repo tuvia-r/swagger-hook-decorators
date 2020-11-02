@@ -1,33 +1,52 @@
 import * as _ from 'lodash';
 import { Schema } from 'swagger-schema-official';
+import { DataType, RequestBody } from './swaggerDecorators';
+export declare type schemaDict = _.Dictionary<DataType | {
+    type: DataType;
+    required: boolean;
+} | Schema> | Schema | _.Dictionary<{
+    [key: string]: Schema;
+}>;
 /**
  * @description converts a dictionary with value as a type string (key: 'string') to a swagger Schema.properties
  */
-export declare const parseScheme: (schema: _.Dictionary<any>) => {
+export declare const parseSchemeProperties: (schema: schemaDict) => {
     [propertyName: string]: Schema;
 };
 /**
- * @description helper for swagger
+ *
+ * @description parses a schemaDict into a swagger Schema
  */
-export declare const bodySchema: (body: _.Dictionary<any>) => {
-    content: {
-        'application/json': {
-            schema: Schema;
-        };
-    };
-};
+export declare const parseScheme: (schema?: schemaDict) => Schema;
 /**
- * creates a swagger body schema
+ * @description creates a swagger request body object with parsed schema
  */
-export declare const bodyModelSchema: (model: string) => {
-    content: {
-        'application/json': {
-            schema: Schema;
-        };
-    };
-};
-export declare const responseArraySchema: (code: string, options: {
-    itemSchema: _.Dictionary<any>;
+export declare const body: (body: Schema | _.Dictionary<"string" | "number" | "boolean" | "object" | "integer" | "array" | "file" | Schema | {
+    type: import("swagger-schema-official").ParameterType;
+    required: boolean;
+}> | _.Dictionary<{
+    [key: string]: Schema;
+}> | schemaDict[], options?: {
+    description?: string;
+    required?: boolean;
+}) => RequestBody;
+/**
+ * creates a swagger body model schema
+ */
+export declare const bodyModel: (model: string | string[], options?: {
+    description?: string;
+    required?: boolean;
+}) => RequestBody;
+/**
+ * creates a swagger array of objects response with parsed objects schema
+ */
+export declare const responseArrayParsed: (code: string | number, options: {
+    itemSchema: Schema | _.Dictionary<"string" | "number" | "boolean" | "object" | "integer" | "array" | "file" | Schema | {
+        type: import("swagger-schema-official").ParameterType;
+        required: boolean;
+    }> | _.Dictionary<{
+        [key: string]: Schema;
+    }> | schemaDict[];
     description: string;
 }) => {
     [x: string]: {
@@ -36,26 +55,75 @@ export declare const responseArraySchema: (code: string, options: {
             'application/json': {
                 schema: {
                     type: string;
-                    items: _.Dictionary<any>;
+                    items: {
+                        allOf: Schema[];
+                    };
                 };
             };
         };
     };
 };
-export declare const responseObjectSchema: (code: string, options: {
-    schema: Schema;
+/**
+ * creates a swagger array of objects response
+ */
+export declare const responseArray: (code: string | number, options: {
+    itemSchema: Schema | Schema[];
     description: string;
 }) => {
     [x: string]: {
         description: string;
         content: {
             'application/json': {
-                schema: Schema;
+                schema: {
+                    type: string;
+                    items: {
+                        allOf: Schema[];
+                    };
+                };
             };
         };
     };
 };
-export declare const responseRefSchema: (code: string, ref: string, description: string) => {
+/**
+ * creates a swagger response with an parsed object schema
+ */
+export declare const responseObjectParsed: (code: string, options: {
+    schema: _.Dictionary<any> | _.Dictionary<any>[];
+    description: string;
+}) => {
+    [x: string]: {
+        description: string;
+        content: {
+            'application/json': {
+                schema: {
+                    allOf: _.Dictionary<any> | _.Dictionary<any>[];
+                };
+            };
+        };
+    };
+};
+/**
+ * creates a swagger response
+ */
+export declare const responseObject: (code: string, options: {
+    schema: _.Dictionary<any> | _.Dictionary<any>[];
+    description: string;
+}) => {
+    [x: string]: {
+        description: string;
+        content: {
+            'application/json': {
+                schema: {
+                    allOf: _.Dictionary<any> | _.Dictionary<any>[];
+                };
+            };
+        };
+    };
+};
+/**
+ * creates a swagger response with a ref schema
+ */
+export declare const responseRef: (code: string, ref: string, description: string) => {
     [x: string]: {
         description: string;
         content: {
@@ -67,7 +135,10 @@ export declare const responseRefSchema: (code: string, ref: string, description:
         };
     };
 };
-export declare const responseModelSchema: (code: string, model: string | string[], description: string) => {
+/**
+ * creates a swagger response with a ref to a model schema
+ */
+export declare const responseModel: (code: string, model: string | string[], description: string) => {
     [x: string]: {
         description: string;
         content: {
@@ -81,7 +152,10 @@ export declare const responseModelSchema: (code: string, model: string | string[
         };
     };
 };
-export declare const responseModelArraySchema: (code: string, model: string | string[], description: string) => {
+/**
+ * creates a swagger response with array of items, and ref to a model as the item schema
+ */
+export declare const responseModelArray: (code: string, model: string | string[], description: string) => {
     [x: string]: {
         description: string;
         content: {

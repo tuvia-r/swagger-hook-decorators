@@ -21,9 +21,12 @@
     }
   ],
   "externalDocs": {
-    "url": "https://theoomoregbee.github.io/"
+    "url": "http://theophilus.ziippii.com"
   },
   "tags": [
+    {
+      "name": "Member"
+    },
     {
       "name": "User"
     },
@@ -82,6 +85,74 @@
     }
   },
   "paths": {
+    "/users": {
+      "post": {
+        "summary": "/users",
+        "tags": [
+          "Member",
+          "User"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "array",
+                          "items": {
+                            "allOf": [
+                              {
+                                "type": "string"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "field"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "properties": {
+                      "field": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "description": "body description",
+          "required": true
+        }
+      }
+    },
     "/users/{id}": {
       "post": {
         "summary": "update user details",
@@ -125,14 +196,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "properties": {
-                  "firstName": {
-                    "type": "string"
-                  },
-                  "lastName": {
-                    "type": "string"
+                "allOf": [
+                  {
+                    "properties": {
+                      "firstName": {
+                        "type": "string"
+                      },
+                      "lastName": {
+                        "type": "string"
+                      }
+                    }
                   }
-                }
+                ]
               }
             }
           }

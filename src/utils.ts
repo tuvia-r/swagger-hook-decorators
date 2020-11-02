@@ -1,54 +1,76 @@
 
 import * as _ from 'lodash'
 import { Schema } from 'swagger-schema-official'
+import { DataType, RequestBody } from './swaggerDecorators'
 
+export type schemaDict = _.Dictionary<DataType | {type: DataType, required: boolean} | Schema> | Schema | _.Dictionary<{[key: string]: Schema}>
+const savedKeys = [
+    '$ref', 
+    'allOf',
+    'additionalProperties',
+    'discriminator',
+    'readOnly',
+    'xml',
+    'externalDocs',
+    'example',
+    'required',
+    'format',
+    'title',
+    'description',
+    'default',
+    'multipleOf',
+    'maximum',
+    'exclusiveMaximum',
+    'minimum',
+    'exclusiveMinimum',
+    'maxLength',
+    'minLength',
+    'pattern',
+    'maxItems',
+    'minItems',
+    'uniqueItems',
+    'maxProperties',
+    'minProperties',
+    'enum',
+    'items',
+]
 /**
  * @description converts a dictionary with value as a type string (key: 'string') to a swagger Schema.properties
  */
-export const parseScheme = (schema: _.Dictionary<any>): Schema['properties'] => {
+export const parseSchemeProperties = (schema: schemaDict): Schema['properties'] => {
     const res: Schema['properties'] = {}
-    const savedKeys = [
-        '$ref', 
-        'type',
-        'allOf',
-        'additionalProperties',
-        'properties',
-        'discriminator',
-        'readOnly',
-        'xml',
-        'externalDocs',
-        'example',
-        'required'
-    ]
     if(typeof schema === 'string'){
         return schema
     }
     for(const k in schema){
         const key = k as keyof Schema
-        if(savedKeys.includes(key)){
-            res[key] = schema[key]
-        }
-        else if (Array.isArray(schema[key])){
-            res[key] = {type: 'array'}
-            if(_.isObject(parseScheme(schema[key][0]))){
-                res[key].items = {properties: parseScheme(schema[key][0])}
+        if (Array.isArray(schema[key])){
+            const all: Schema[] = []
+            for(const t of schema[key]){
+                if(typeof t === 'object'){
+                    all.push(parseScheme(t))
+                }
+                else{
+                    all.push({ type: t })
+                }
             }
-            else{
-                res[key].items = { type: schema[key][0] }
+            res[key] = {
+                type: 'array',
+                items: {
+                    allOf: all
+                }
             }
+            
         }
         else if(typeof schema[key] === 'object'){
             if(schema[key].properties){
-                res[key] = { properties : parseScheme(schema[key].properties)}
+                res[key] = parseScheme(schema[key])
             }
-            else if (schema[key].items && !_.isObject(schema[key].items)){
-                res[key] = {
-                    type: 'array',
-                    items: schema[key].items
-                }
+            else if(schema[key].type){
+                res[key] = { type: schema[key].type, items: schema[key].items }
             }
             else {
-                res[key] = parseScheme(schema[key]) as Schema
+                res[key] = parseSchemeProperties(schema[key])
             }
         }
         else {
@@ -58,44 +80,121 @@ export const parseScheme = (schema: _.Dictionary<any>): Schema['properties'] => 
     return res
 }
 
-    
 /**
- * @description helper for swagger
+ * 
+ * @description parses a schemaDict into a swagger Schema
  */
-export const bodySchema = (body: _.Dictionary<any>) => {
-    const properties = parseScheme(body)
-    const required = []
-    for(const key in body ){
-        if(typeof body[key] === 'object'){
-            if(body[key].required){
-                required.push(key)
+export const parseScheme = (schema: schemaDict = {}): Schema => {
+    const parsed: Schema = {
+        properties: schema.properties ? 
+            parseSchemeProperties(schema.properties as any) 
+            : parseSchemeProperties(schema)
+    }
+    for (const key of savedKeys){
+        (parsed as any)[key] = schema[key as keyof schemaDict]
+    }
+    if(!parsed.required){
+        const required: string[] = []
+        for(const k in schema){
+            const key = k as keyof schemaDict
+            if(typeof schema[key] === 'object'){
+                if(schema[key].required){
+                    required.push(key)
+                }
             }
         }
-    }
-    const schema: Schema = { properties }
-    if(required.length > 1){
-        schema.required = required
-    }
-    return {
-    content: {
-        'application/json': {
-        schema
+        if(required.length !== 0){
+            parsed.required = required
         }
     }
+    return parsed
+}
+
+    
+/**
+ * @description creates a swagger request body object with parsed schema
+ */
+export const body = (
+    body: schemaDict | schemaDict[], 
+    options: { 
+        description?: string
+        required?: boolean
+    } = {}
+): RequestBody => {
+    const {description, required} = options
+    if(!Array.isArray(body)){
+        body = [body]
+    }
+    const schemas: Schema[] = []
+    for (const bodySchema of body){
+        const schema = parseScheme(bodySchema)
+        schemas.push(schema)
+    }
+    return {
+        content: {
+            'application/json': {
+                schema: {
+                    allOf: schemas
+                }
+            }
+        },
+        description,
+        required
     }
 }
 
 /**
- * creates a swagger body schema
+ * creates a swagger body model schema 
  */
-export const bodyModelSchema = (model: string) => {
-    return bodySchema({
-        $ref :`#/components/schemas/${model.toLowerCase()}-without-required-constraint`, 
-    })
+export const bodyModel = (model: string | string[], options?: { 
+    description?: string
+    required?: boolean
+}) => {
+    if(!Array.isArray(model)){
+        model = [model]
+    }
+    const refs = model.map(m => ({
+        $ref :`#/components/schemas/${m.toLowerCase()}-without-required-constraint`, 
+    }))
+    return body(refs, options)
 }
 
-export const responseArraySchema = (code: string = '200', options: { itemSchema: _.Dictionary<any>, description: string}) => {
-    const  { itemSchema, description } = options
+/**
+ * creates a swagger array of objects response with parsed objects schema
+ */
+export const responseArrayParsed = (
+    code: string | number = '200', 
+    options: { 
+        itemSchema: schemaDict | schemaDict[], 
+        description: string
+    }
+) => {
+    let  { itemSchema, description } = options
+    if(!Array.isArray(itemSchema)){
+        itemSchema = [itemSchema]
+    }
+    itemSchema = itemSchema.map((s: _.Dictionary<any>) => parseScheme(s))
+    return responseArray(code, {itemSchema, description})
+}
+
+
+/**
+ * creates a swagger array of objects response
+ */
+export const responseArray = (
+    code: string | number = '200', 
+    options: { 
+        itemSchema: Schema | Schema[], 
+        description: string
+    }
+) => {
+    let  { itemSchema, description } = options
+    if(!Array.isArray(itemSchema)){
+        itemSchema = [itemSchema]
+    }
+    if(!description){
+        description = ''
+    }
     return {
         [code]: {
             description,
@@ -103,7 +202,9 @@ export const responseArraySchema = (code: string = '200', options: { itemSchema:
                 'application/json': {
                     schema: {
                         type: 'array',
-                        items: itemSchema,
+                        items: {
+                            allOf: itemSchema
+                        },
                     },
                 },
             },
@@ -111,21 +212,66 @@ export const responseArraySchema = (code: string = '200', options: { itemSchema:
     }
 }
 
-export const responseObjectSchema = (code: string, options: { schema: Schema, description: string}) => {
-    const  { schema, description } = options
+
+/**
+ * creates a swagger response with an parsed object schema
+ */
+export const responseObjectParsed = (
+    code: string, 
+    options: { 
+        schema: _.Dictionary<any> | _.Dictionary<any>[], 
+        description: string
+    }
+) => {
+    let { schema, description } = options
+    if(!Array.isArray(schema)){
+        schema = [schema]
+    }
+    if(description === undefined){
+        description = ''
+    }
+    schema = schema.map((s: _.Dictionary<any>) => parseScheme(s))
+    return responseObject(code, {schema, description})
+}
+
+/**
+ * creates a swagger response
+ */
+export const responseObject = (
+    code: string, 
+    options: { 
+        schema: _.Dictionary<any> | _.Dictionary<any>[], 
+        description: string
+    }
+) => {
+    let { schema, description } = options
+    if(!Array.isArray(schema)){
+        schema = [schema]
+    }
+    if(description === undefined){
+        description = ''
+    }
     return {
         [code]: {
             description,
             content: {
                 'application/json': {
-                    schema,
+                    schema: {
+                        allOf: schema
+                    },
                 },
             },
         }
     }
 }
 
-export const responseRefSchema = (code: string, ref: string, description: string) => {
+/**
+ * creates a swagger response with a ref schema
+ */
+export const responseRef = (code: string, ref: string, description: string) => {
+    if(description === undefined){
+        description = ''
+    }
     return {
         [code]: {
             description,
@@ -140,9 +286,16 @@ export const responseRefSchema = (code: string, ref: string, description: string
     }
 }
 
-export const responseModelSchema = (code: string, model: string | string[],  description: string) =>{
+
+/**
+ * creates a swagger response with a ref to a model schema
+ */
+export const responseModel = (code: string, model: string | string[],  description: string) =>{
     if(!Array.isArray(model)){
         model = [model]
+    }
+    if(description === undefined){
+        description = ''
     }
     const refs = model.map(m => ({ $ref: `#/components/schemas/${m.toLowerCase()}-without-required-constraint`}))
     return {
@@ -159,9 +312,15 @@ export const responseModelSchema = (code: string, model: string | string[],  des
     }
 }
 
-export const responseModelArraySchema = (code: string, model: string | string[], description: string) => {
+/**
+ * creates a swagger response with array of items, and ref to a model as the item schema
+ */
+export const responseModelArray = (code: string, model: string | string[], description: string) => {
     if(!Array.isArray(model)){
         model = [model]
+    }
+    if(description === undefined){
+        description = ''
     }
     const refs = model.map(m => ({ $ref: `#/components/schemas/${m.toLowerCase()}-without-required-constraint`}))
     return {

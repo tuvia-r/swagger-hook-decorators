@@ -46,7 +46,7 @@ function Tag(...tags) {
     };
 }
 exports.Tag = Tag;
-function Parameter(...parameters) {
+function Param(...parameters) {
     return function (target, name, descriptor) {
         var _a;
         if (descriptor) {
@@ -65,7 +65,7 @@ function Parameter(...parameters) {
         return descriptor;
     };
 }
-exports.Parameter = Parameter;
+exports.Param = Param;
 function QueryParam(paramName, options = {}) {
     return function (target, name, descriptor) {
         var _a;

@@ -1,53 +1,71 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const _ = require("lodash");
+const savedKeys = [
+    '$ref',
+    'allOf',
+    'additionalProperties',
+    'discriminator',
+    'readOnly',
+    'xml',
+    'externalDocs',
+    'example',
+    'required',
+    'format',
+    'title',
+    'description',
+    'default',
+    'multipleOf',
+    'maximum',
+    'exclusiveMaximum',
+    'minimum',
+    'exclusiveMinimum',
+    'maxLength',
+    'minLength',
+    'pattern',
+    'maxItems',
+    'minItems',
+    'uniqueItems',
+    'maxProperties',
+    'minProperties',
+    'enum',
+    'items',
+];
 /**
  * @description converts a dictionary with value as a type string (key: 'string') to a swagger Schema.properties
  */
-exports.parseScheme = (schema) => {
+exports.parseSchemeProperties = (schema) => {
     const res = {};
-    const savedKeys = [
-        '$ref',
-        'type',
-        'allOf',
-        'additionalProperties',
-        'properties',
-        'discriminator',
-        'readOnly',
-        'xml',
-        'externalDocs',
-        'example',
-        'required'
-    ];
     if (typeof schema === 'string') {
         return schema;
     }
     for (const k in schema) {
         const key = k;
-        if (savedKeys.includes(key)) {
-            res[key] = schema[key];
-        }
-        else if (Array.isArray(schema[key])) {
-            res[key] = { type: 'array' };
-            if (_.isObject(exports.parseScheme(schema[key][0]))) {
-                res[key].items = { properties: exports.parseScheme(schema[key][0]) };
+        if (Array.isArray(schema[key])) {
+            const all = [];
+            for (const t of schema[key]) {
+                if (typeof t === 'object') {
+                    all.push(exports.parseScheme(t));
+                }
+                else {
+                    all.push({ type: t });
+                }
             }
-            else {
-                res[key].items = { type: schema[key][0] };
-            }
+            res[key] = {
+                type: 'array',
+                items: {
+                    allOf: all
+                }
+            };
         }
         else if (typeof schema[key] === 'object') {
             if (schema[key].properties) {
-                res[key] = { properties: exports.parseScheme(schema[key].properties) };
+                res[key] = exports.parseScheme(schema[key]);
             }
-            else if (schema[key].items && !_.isObject(schema[key].items)) {
-                res[key] = {
-                    type: 'array',
-                    items: schema[key].items
-                };
+            else if (schema[key].type) {
+                res[key] = { type: schema[key].type, items: schema[key].items };
             }
             else {
-                res[key] = exports.parseScheme(schema[key]);
+                res[key] = exports.parseSchemeProperties(schema[key]);
             }
         }
         else {
@@ -57,40 +75,93 @@ exports.parseScheme = (schema) => {
     return res;
 };
 /**
- * @description helper for swagger
+ *
+ * @description parses a schemaDict into a swagger Schema
  */
-exports.bodySchema = (body) => {
-    const properties = exports.parseScheme(body);
-    const required = [];
-    for (const key in body) {
-        if (typeof body[key] === 'object') {
-            if (body[key].required) {
-                required.push(key);
+exports.parseScheme = (schema = {}) => {
+    const parsed = {
+        properties: schema.properties ?
+            exports.parseSchemeProperties(schema.properties)
+            : exports.parseSchemeProperties(schema)
+    };
+    for (const key of savedKeys) {
+        parsed[key] = schema[key];
+    }
+    if (!parsed.required) {
+        const required = [];
+        for (const k in schema) {
+            const key = k;
+            if (typeof schema[key] === 'object') {
+                if (schema[key].required) {
+                    required.push(key);
+                }
             }
         }
+        if (required.length !== 0) {
+            parsed.required = required;
+        }
     }
-    const schema = { properties };
-    if (required.length > 1) {
-        schema.required = required;
+    return parsed;
+};
+/**
+ * @description creates a swagger request body object with parsed schema
+ */
+exports.body = (body, options = {}) => {
+    const { description, required } = options;
+    if (!Array.isArray(body)) {
+        body = [body];
+    }
+    const schemas = [];
+    for (const bodySchema of body) {
+        const schema = exports.parseScheme(bodySchema);
+        schemas.push(schema);
     }
     return {
         content: {
             'application/json': {
-                schema
+                schema: {
+                    allOf: schemas
+                }
             }
-        }
+        },
+        description,
+        required
     };
 };
 /**
- * creates a swagger body schema
+ * creates a swagger body model schema
  */
-exports.bodyModelSchema = (model) => {
-    return exports.bodySchema({
-        $ref: `#/components/schemas/${model.toLowerCase()}-without-required-constraint`,
-    });
+exports.bodyModel = (model, options) => {
+    if (!Array.isArray(model)) {
+        model = [model];
+    }
+    const refs = model.map(m => ({
+        $ref: `#/components/schemas/${m.toLowerCase()}-without-required-constraint`,
+    }));
+    return exports.body(refs, options);
 };
-exports.responseArraySchema = (code = '200', options) => {
-    const { itemSchema, description } = options;
+/**
+ * creates a swagger array of objects response with parsed objects schema
+ */
+exports.responseArrayParsed = (code = '200', options) => {
+    let { itemSchema, description } = options;
+    if (!Array.isArray(itemSchema)) {
+        itemSchema = [itemSchema];
+    }
+    itemSchema = itemSchema.map((s) => exports.parseScheme(s));
+    return exports.responseArray(code, { itemSchema, description });
+};
+/**
+ * creates a swagger array of objects response
+ */
+exports.responseArray = (code = '200', options) => {
+    let { itemSchema, description } = options;
+    if (!Array.isArray(itemSchema)) {
+        itemSchema = [itemSchema];
+    }
+    if (!description) {
+        description = '';
+    }
     return {
         [code]: {
             description,
@@ -98,27 +169,60 @@ exports.responseArraySchema = (code = '200', options) => {
                 'application/json': {
                     schema: {
                         type: 'array',
-                        items: itemSchema,
+                        items: {
+                            allOf: itemSchema
+                        },
                     },
                 },
             },
         }
     };
 };
-exports.responseObjectSchema = (code, options) => {
-    const { schema, description } = options;
+/**
+ * creates a swagger response with an parsed object schema
+ */
+exports.responseObjectParsed = (code, options) => {
+    let { schema, description } = options;
+    if (!Array.isArray(schema)) {
+        schema = [schema];
+    }
+    if (description === undefined) {
+        description = '';
+    }
+    schema = schema.map((s) => exports.parseScheme(s));
+    return exports.responseObject(code, { schema, description });
+};
+/**
+ * creates a swagger response
+ */
+exports.responseObject = (code, options) => {
+    let { schema, description } = options;
+    if (!Array.isArray(schema)) {
+        schema = [schema];
+    }
+    if (description === undefined) {
+        description = '';
+    }
     return {
         [code]: {
             description,
             content: {
                 'application/json': {
-                    schema,
+                    schema: {
+                        allOf: schema
+                    },
                 },
             },
         }
     };
 };
-exports.responseRefSchema = (code, ref, description) => {
+/**
+ * creates a swagger response with a ref schema
+ */
+exports.responseRef = (code, ref, description) => {
+    if (description === undefined) {
+        description = '';
+    }
     return {
         [code]: {
             description,
@@ -132,9 +236,15 @@ exports.responseRefSchema = (code, ref, description) => {
         }
     };
 };
-exports.responseModelSchema = (code, model, description) => {
+/**
+ * creates a swagger response with a ref to a model schema
+ */
+exports.responseModel = (code, model, description) => {
     if (!Array.isArray(model)) {
         model = [model];
+    }
+    if (description === undefined) {
+        description = '';
     }
     const refs = model.map(m => ({ $ref: `#/components/schemas/${m.toLowerCase()}-without-required-constraint` }));
     return {
@@ -150,9 +260,15 @@ exports.responseModelSchema = (code, model, description) => {
         }
     };
 };
-exports.responseModelArraySchema = (code, model, description) => {
+/**
+ * creates a swagger response with array of items, and ref to a model as the item schema
+ */
+exports.responseModelArray = (code, model, description) => {
     if (!Array.isArray(model)) {
         model = [model];
+    }
+    if (description === undefined) {
+        description = '';
     }
     const refs = model.map(m => ({ $ref: `#/components/schemas/${m.toLowerCase()}-without-required-constraint` }));
     return {

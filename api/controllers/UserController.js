@@ -17,14 +17,17 @@ const {
     Summary,
     util,
     Tag,
-    SwaggerExclude
+    SwaggerExclude,
+    Body
 } = require('../../dist/index');
 
 @Path('/users')
 class UserController {
 
     @POST
-    @Tag('user', 'member')
+    @Tag('User', 'Member')
+    @Body(util.body({field: 'string'}, {description: 'body description', required: true}))
+    @Response(util.responseObjectParsed(200, {schema: [{field: {type: 'string', required: true}, id: ['string']}]}))
     async create (req, res) {}
 
 
@@ -32,7 +35,7 @@ class UserController {
     @Path('/:id')
     @PathParam('id', {description: 'user\'s id'})
     @Summary('Return logged in user')
-    @Response(util.responseModelSchema(200, 'user', ''))
+    @Response(util.responseModel(200, 'user', ''))
     async getMe (req, res) {
     }
 
@@ -50,8 +53,8 @@ class UserController {
     @Path('/:id')
     @SwaggerConfig({
         summary: "update user details",
-        responses: util.responseModelSchema(200, 'user', ''),
-        requestBody: util.bodySchema({
+        responses: util.responseModel(200, 'user', ''),
+        requestBody: util.body({
             firstName: 'string',
             lastName: 'string'
         })

@@ -1,6 +1,6 @@
 import { Dictionary } from "lodash";
 import * as OpenApi from 'swagger-schema-official';
-export declare type DataType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object';
+export declare type DataType = OpenApi.ParameterType;
 export interface Example {
     summary?: string;
     description?: string;
@@ -15,7 +15,7 @@ export interface Encoding {
     allowReserved?: boolean;
 }
 export interface MediaType {
-    schema?: OpenApi.BaseSchema | OpenApi.Reference;
+    schema?: OpenApi.Schema | OpenApi.Reference;
     example?: any;
     examples?: Record<string, Example | OpenApi.Reference>;
     encoding?: Record<string, Encoding>;
@@ -44,7 +44,7 @@ export interface DescriptorValue {
 export declare function Description(description: string): MethodDecorator;
 export declare function Summary(summary: string): MethodDecorator;
 export declare function Tag(...tags: string[]): MethodDecorator;
-export declare function Parameter(...parameters: OpenApi.Parameter[]): MethodDecorator;
+export declare function Param(...parameters: OpenApi.Parameter[]): MethodDecorator;
 export declare function QueryParam(paramName: string, options?: Partial<Parameter>): MethodDecorator;
 export declare function PathParam(paramName: string, options?: Partial<Parameter>): MethodDecorator;
 export declare function Body(body: RequestBody): MethodDecorator;

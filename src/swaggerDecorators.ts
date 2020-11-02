@@ -1,7 +1,7 @@
 import { Dictionary } from "lodash";
 import * as OpenApi from 'swagger-schema-official'
 
-export type DataType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object';
+export type DataType = OpenApi.ParameterType
 
 export interface Example {
     summary?: string;
@@ -19,7 +19,7 @@ export interface Encoding {
 }
 
 export interface MediaType {
-    schema?: OpenApi.BaseSchema | OpenApi.Reference;
+    schema?: OpenApi.Schema | OpenApi.Reference;
     example?: any;
     examples?: Record<string, Example | OpenApi.Reference>;
     encoding?: Record<string, Encoding>;
@@ -28,7 +28,7 @@ export interface MediaType {
 
 export interface RequestBody {
     description?: string;
-    content: Record<string, MediaType>;
+    content: Record<string, MediaType>
     required?: boolean;
 }
 
@@ -93,7 +93,7 @@ export function Tag(...tags: string[]): MethodDecorator {
   };
 }
 
-export function Parameter(...parameters: OpenApi.Parameter[]): MethodDecorator {
+export function Param(...parameters: OpenApi.Parameter[]): MethodDecorator {
   return function (target, name, descriptor) {
     if (descriptor) {
 		const value = descriptor.value as DescriptorValue;
